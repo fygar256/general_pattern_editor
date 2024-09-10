@@ -2,7 +2,7 @@ GENERAL PATTERN EDITOR patterneditor.py
 
 Free-size generic binary screen pattern editor.
 
-````
+```
 0 0 1 1 1 1 0 0 0
 0 1 1 0 0 1 1 0 0
 1 1 0 0 0 0 1 1 0
@@ -11,13 +11,13 @@ Free-size generic binary screen pattern editor.
 1 1 0 0 0 0 1 1 0
 1 1 0 0 0 0 1 1 0
 0 0 0 0 0 0 0 0 0
-````
+```
 
 Edit and generate a text file of a two-dimensional list of 0's and 1's.
 
 Load the 2 dimentional list from file with numpy
 
-````.
+```
 import numpy as np
 F = np.loadtxt(a)
 ```
@@ -27,6 +27,7 @@ You can save it with:
 ```
 np.savetxt(a, F, “%d”)
 ```
+
 Editor commands
 
 ```
