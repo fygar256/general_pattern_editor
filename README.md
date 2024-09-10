@@ -31,12 +31,12 @@ np.savetxt(a, F, “%d”)
 Editor commands
 
 ```
-With 'l', set the screen width and height to the number of elements in the file, and load the pattern from the file.
-        's' to load a pattern from a file.
+'l', set the screen width and height to the number of elements in the file, and load the pattern from the file.
 's' saves the current screen to file.
+'w' saves 2 dimentional list's pattern file.
 'z' sets the number of elements for the current screen width and height.
 'c' clears the current screen.
-With 'q' you are done.
+'q' you are done.
 ```
 
 On/Off after mouse click on a cell of the screen. The first screen has 8x8 elements.
