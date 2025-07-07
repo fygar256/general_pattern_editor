@@ -35,12 +35,12 @@ np.savetxt(a, F, “%d”)
 Editor commands
 
 ```
-'w' saves 2 dimentional list's pattern file and quit.
-'z' sets the number of elements for the current screen width and height.
-'c' clears the current screen.
+'w' save and quit.
+'z' set the number of elements for the current screen width and height.
+'c' clear the current screen.
 'q' quit.
 ```
 
 On/Off after mouse click on a cell of the screen. The first screen has 8x8 elements.
 
-After entering a command that takes arguments, a message will appear in the window you launched, but it will not be focused, so click on it to focus it. The same is true when you return to the editor.
+After entering a command that takes arguments, a message will appear in the window you launched, but it will not be focused, so click on it to focus it.
