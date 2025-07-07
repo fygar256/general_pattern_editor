@@ -1,4 +1,4 @@
-GENERAL PATTERN EDITOR patterneditor.py
+GENERAL PATTERN EDITOR gp.py
 
 Free-size generic binary screen pattern editor.
 
@@ -13,7 +13,11 @@ Free-size generic binary screen pattern editor.
 0 0 0 0 0 0 0 0 0
 ```
 
-Edit and generate a text file of a two-dimensional list of 0's and 1's.
+Edit and generate a text file of a two-dimensional list of 0 and 1.
+
+```
+Usage: ./gp.py file
+```
 
 Load the 2 dimentional list from file with numpy
 
@@ -31,12 +35,10 @@ np.savetxt(a, F, “%d”)
 Editor commands
 
 ```
-'l', set the screen width and height to the number of elements in the file, and load the pattern from the file.
-'s' saves the current screen to file.
-'w' saves 2 dimentional list's pattern file.
+'w' saves 2 dimentional list's pattern file and quit.
 'z' sets the number of elements for the current screen width and height.
 'c' clears the current screen.
-'q' you are done.
+'q' quit.
 ```
 
 On/Off after mouse click on a cell of the screen. The first screen has 8x8 elements.
