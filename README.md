@@ -25,7 +25,7 @@ chmod +x gp.py
 Usage: ./gp.py file
 ```
 
-Load the 2 dimentional list from file with numpy
+You can load the 2 dimentional list from file with numpy
 
 ```
 import numpy as np
