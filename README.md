@@ -15,6 +15,12 @@ Free-size generic binary screen pattern editor.
 
 Edit and generate a text file of a two-dimensional list of 0 and 1.
 
+Give execurion right as:
+
+```
+chmod +x gp.py
+```
+
 ```
 Usage: ./gp.py file
 ```
