@@ -6,10 +6,34 @@ import sys
 import numpy as np
 import os
 import binascii
+import subprocess
+
 
 width=8
 height=8
 scale=16
+win_id=""
+
+def getwindowid():
+    try:
+        # ウィンドウidを取得
+        w_id = subprocess.check_output(
+            ["xdotool", "getactivewindow"]
+        ).splitlines()[0]
+        return w_id
+
+    except subprocess.CalledProcessError:
+        return "0"
+
+
+def focus_window(id):
+    try:
+        # フォーカスを移動
+        subprocess.run(["xdotool", "windowactivate", id])
+        return True
+    except subprocess.CalledProcessError:
+        return False
+
 
 def draw_grid(screen):
   screen.fill((0,0,0))
@@ -37,13 +61,13 @@ def setscr():
     pygame.quit()
     pygame.init()    # Pygameを初期化
     screen = pygame.display.set_mode((scale*width,scale*height))   # 画面を作成
-    s=str(width)+"x"+str(height)+" pattern editor"
+    s="gp "+str(width)+"x"+str(height)
     pygame.display.set_caption(s)    # タイトルを作成
     draw_grid(screen)
     return screen
 
 def eventloop(F,screen):
-    global width,height
+    global width,height,win_id
     run='e'
     while run!='q' and run!='w':
         for event in pygame.event.get():
@@ -56,6 +80,7 @@ def eventloop(F,screen):
                 if k== 'w':
                     run='w'
                 elif k=='z':
+                    focus_window(win_id)
                     width=int(input("Input width:"))
                     height=int(input("Input height:"))
                     screen=setscr()
@@ -73,8 +98,9 @@ def eventloop(F,screen):
     return run,F
 
 def main():
-    global height,width
+    global height,width,win_id
     fn=sys.argv[1]
+    win_id=getwindowid()
     screen=setscr()
     F=clear()
     put(F,screen)
@@ -88,6 +114,7 @@ def main():
         width=len(F[0])
         screen=setscr()
         put(F,screen)
+        print(f"width: {width} height: {height}")
     flag,F=eventloop(F,screen)
     if flag=='w':
         np.savetxt(fn, F, "%d")
