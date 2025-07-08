@@ -49,4 +49,4 @@ Editor commands
 
 On/Off after mouse click on a cell of the screen. The first screen has 8x8 elements.
 
-After entering a command that takes arguments, a message will appear in the window you launched, but it will not be focused, so click on it to focus it.
+After entering a command that takes arguments, a message will appear in the window you launched.
