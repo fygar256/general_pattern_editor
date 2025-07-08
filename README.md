@@ -29,13 +29,13 @@ You can load the 2 dimentional list from file with numpy
 
 ```
 import numpy as np
-F = np.loadtxt(a)
+F = np.loadtxt(filename)
 ```
 
 You can save it with:
 
 ```
-np.savetxt(a, F, “%d”)
+np.savetxt(filename, F, “%d”)
 ```
 
 Editor commands
