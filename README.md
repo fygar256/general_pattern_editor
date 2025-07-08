@@ -42,7 +42,7 @@ Editor commands
 
 ```
 'w' save and quit.
-'z' set the number of elements for the current screen width and height.
+'z' set width and height for the current screen. 
 'c' clear the current screen.
 'q' quit.
 ```
