@@ -1,6 +1,6 @@
 GENERAL PATTERN EDITOR gp.py
 
-Free-size generic binary screen pattern editor.
+Free-size general binary screen pattern editor.
 
 ```
 0 0 1 1 1 1 0 0 0
