@@ -1,129 +1,155 @@
 #!/usr/bin/env python3
-from pygame.locals import *
-from scipy import signal
-import pygame
-import sys
+import tkinter as tk
+from tkinter import messagebox
 import numpy as np
+import sys
 import os
-import binascii
-import subprocess
+
+SCALE = 16
 
 
-width=8
-height=8
-scale=16
-win_id=""
+class GpEditor:
+    def __init__(self, root, fn):
+        self.root = root
+        self.fn = fn
+        self.width = 8
+        self.height = 8
+        self.F = np.zeros((self.height, self.width))
+        self.dragging = False
+        self.drag_val = 0
 
-def getwindowid():
-    try:
-        # ウィンドウidを取得
-        w_id = subprocess.check_output(
-            ["xdotool", "getactivewindow"]
-        ).splitlines()[0]
-        return w_id
+        if os.path.exists(fn):
+            try:
+                self.F = np.loadtxt(fn)
+                self.height, self.width = self.F.shape
+            except Exception:
+                messagebox.showerror("Error", "File format wrong.")
+                self.F = np.zeros((self.height, self.width))
 
-    except subprocess.CalledProcessError:
-        return "0"
+        self._build_ui()
+        self._redraw()
 
+    def _build_ui(self):
+        self.root.title(f"gp {self.width}x{self.height}")
+        self.root.resizable(False, False)
 
-def focus_window(id):
-    try:
-        # フォーカスを移動
-        subprocess.run(["xdotool", "windowactivate", id])
-        return True
-    except subprocess.CalledProcessError:
-        return False
+        self.canvas = tk.Canvas(self.root,
+                                width=self.width * SCALE,
+                                height=self.height * SCALE,
+                                cursor='crosshair')
+        self.canvas.pack(side=tk.TOP)
+        self.canvas.bind('<ButtonPress-1>',   self._on_press)
+        self.canvas.bind('<B1-Motion>',        self._on_drag)
+        self.canvas.bind('<ButtonRelease-1>', self._on_release)
 
+        btn_frame = tk.Frame(self.root, padx=4, pady=4)
+        btn_frame.pack(side=tk.BOTTOM, fill=tk.X)
 
-def draw_grid(screen):
-  screen.fill((0,0,0))
-  for i in range(width):
-    pygame.draw.line(screen,(0,255,0),(i*scale,0),(i*scale,scale*height),1)
-  for i in range(height):
-    pygame.draw.line(screen,(0,255,0),(0,i*scale),(scale*width,i*scale),1)
+        tk.Button(btn_frame, text="Save",   width=8, command=self._save).pack(side=tk.LEFT,  padx=2)
+        tk.Button(btn_frame, text="Clear",  width=8, command=self._clear).pack(side=tk.LEFT,  padx=2)
+        tk.Button(btn_frame, text="Resize", width=8, command=self._resize).pack(side=tk.LEFT,  padx=2)
+        tk.Button(btn_frame, text="Quit",   width=8, command=self._quit).pack(side=tk.RIGHT, padx=2)
 
-def set(screen,cx,cy,c):
-  screen.fill((c*255,c*255,c*255),(cx*scale+1,cy*scale+1,scale-1,scale-1))
+        self.status = tk.StringVar(value=f"{self.width}x{self.height}")
+        tk.Label(btn_frame, textvariable=self.status, anchor='w').pack(side=tk.LEFT, padx=8)
 
-def put(F,screen):
-  for i in range(len(F)):
-    for j in range(len(F[1])):
-       set(screen,j,i,F[i][j])
+        self.root.protocol("WM_DELETE_WINDOW", self._quit)
 
-def rev(F,cx,cy):
-  F[cy][cx]=int(F[cy][cx])^1
-  return(F)
+    def _redraw(self):
+        self.canvas.delete('all')
+        for i in range(self.height):
+            for j in range(self.width):
+                x0, y0 = j * SCALE, i * SCALE
+                fill = '#ffffff' if self.F[i][j] else '#000000'
+                self.canvas.create_rectangle(x0, y0, x0 + SCALE, y0 + SCALE,
+                                             fill=fill, outline='#00ff00')
 
-def clear():
-    return(np.zeros((height,width)))
+    def _cell(self, event):
+        cx = event.x // SCALE
+        cy = event.y // SCALE
+        if 0 <= cx < self.width and 0 <= cy < self.height:
+            return cx, cy
+        return None, None
 
-def setscr():
-    pygame.quit()
-    pygame.init()    # Pygameを初期化
-    screen = pygame.display.set_mode((scale*width,scale*height))   # 画面を作成
-    s="gp "+str(width)+"x"+str(height)
-    pygame.display.set_caption(s)    # タイトルを作成
-    draw_grid(screen)
-    return screen
+    def _on_press(self, event):
+        cx, cy = self._cell(event)
+        if cx is None:
+            return
+        self.drag_val = int(self.F[cy][cx]) ^ 1
+        self.F[cy][cx] = self.drag_val
+        self.dragging = True
+        self._redraw()
 
-def eventloop(F,screen):
-    global width,height,win_id
-    run='e'
-    while run!='q' and run!='w':
-        for event in pygame.event.get():
-            if event.type == QUIT:
-                run='q'
-            if event.type == KEYDOWN:  # キーを押したとき
-                k=pygame.key.name(event.key)
-                if k== 'q':
-                    run='q'
-                if k== 'w':
-                    run='w'
-                elif k=='z':
-                    focus_window(win_id)
-                    width=int(input("Input width:"))
-                    height=int(input("Input height:"))
-                    screen=setscr()
-                    F=clear()
-                elif k=='c':
-                    F=clear()
-                    put(F,screen)
-            elif event.type == MOUSEBUTTONDOWN:
-                    x, y = event.pos
-                    F=rev(F,x//scale,y//scale)
-                    put(F,screen)
-            elif event.type == MOUSEMOTION:
-                    x, y = event.pos
-        pygame.display.update()
-    return run,F
+    def _on_drag(self, event):
+        if not self.dragging:
+            return
+        cx, cy = self._cell(event)
+        if cx is None:
+            return
+        if self.F[cy][cx] != self.drag_val:
+            self.F[cy][cx] = self.drag_val
+            self._redraw()
+
+    def _on_release(self, event):
+        self.dragging = False
+
+    def _save(self):
+        np.savetxt(self.fn, self.F, '%d')
+        messagebox.showinfo("Saved", f"Written: {self.fn}")
+
+    def _clear(self):
+        self.F = np.zeros((self.height, self.width))
+        self._redraw()
+
+    def _resize(self):
+        dlg = tk.Toplevel(self.root)
+        dlg.title("Resize")
+        dlg.resizable(False, False)
+        dlg.grab_set()
+
+        tk.Label(dlg, text="Width:").grid(row=0, column=0, padx=8, pady=6, sticky='e')
+        w_var = tk.StringVar(value=str(self.width))
+        tk.Entry(dlg, textvariable=w_var, width=6).grid(row=0, column=1, padx=8)
+
+        tk.Label(dlg, text="Height:").grid(row=1, column=0, padx=8, pady=6, sticky='e')
+        h_var = tk.StringVar(value=str(self.height))
+        tk.Entry(dlg, textvariable=h_var, width=6).grid(row=1, column=1, padx=8)
+
+        def apply():
+            try:
+                nw = int(w_var.get())
+                nh = int(h_var.get())
+                if nw < 1 or nh < 1:
+                    raise ValueError
+            except ValueError:
+                messagebox.showerror("Error", "Enter positive integers.", parent=dlg)
+                return
+            self.width, self.height = nw, nh
+            self.F = np.zeros((self.height, self.width))
+            self.canvas.config(width=self.width * SCALE, height=self.height * SCALE)
+            self.root.title(f"gp {self.width}x{self.height}")
+            self.status.set(f"{self.width}x{self.height}")
+            self._redraw()
+            dlg.destroy()
+
+        tk.Button(dlg, text="OK",     width=8, command=apply).grid(row=2, column=0, padx=8, pady=8)
+        tk.Button(dlg, text="Cancel", width=8, command=dlg.destroy).grid(row=2, column=1, padx=8, pady=8)
+
+        dlg.bind('<Return>', lambda e: apply())
+        dlg.bind('<Escape>', lambda e: dlg.destroy())
+
+    def _quit(self):
+        self.root.destroy()
+
 
 def main():
-    global height,width,win_id
-    fn=sys.argv[1]
-    win_id=getwindowid()
-    screen=setscr()
-    F=clear()
-    put(F,screen)
-    if os.path.exists(fn):
-        try:
-            F = np.loadtxt(fn)
-        except:
-            print("File format wrong.")
-            F = clear()
-        height=len(F)
-        width=len(F[0])
-        screen=setscr()
-        put(F,screen)
-        print(f"width: {width} height: {height}")
-    flag,F=eventloop(F,screen)
-    if flag=='w':
-        np.savetxt(fn, F, "%d")
-        print("File written.");
-    else:
-        print("File is not written.")
-    pygame.quit()
-    sys.exit()
+    if len(sys.argv) < 2:
+        print("Usage: gp.py <filename>")
+        sys.exit(1)
+    root = tk.Tk()
+    GpEditor(root, sys.argv[1])
+    root.mainloop()
 
-if __name__=='__main__':
+
+if __name__ == '__main__':
     main()
-
