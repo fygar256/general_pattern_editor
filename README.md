@@ -38,15 +38,6 @@ You can save it with:
 np.savetxt(filename, F, “%d”)
 ```
 
-Editor commands
-
-```
-'w' save and quit.
-'z' set width and height for the current screen. 
-'c' clear the current screen.
-'q' quit.
-```
-
 On/Off after mouse click on a cell of the screen. The first screen has 8x8 elements.
 
 After entering a command that takes arguments, a message will appear in the window you launched.
